@@ -1,224 +1,142 @@
-<!DOCTYPE html>
-<html lang="PT-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SISTEMA DE CUSTOS - CB2K 3D</title>
-    <style>
-        :root {
-            --azul-escuro: #0A192F;
-            --azul-claro: #172A45;
-            --branco: #FFFFFF;
-            --destaque: #64FFDA;
+<DIV CLASS="CONTAINER-ORCAMENTO">
+    
+    <DIV CLASS="CARD-CLIENTE">
+        <DIV CLASS="GRUPO-INPUT">
+            <LABEL>CLIENTE</LABEL>
+            <INPUT TYPE="TEXT" ID="CLIENTE_NOME" PLACEHOLDER="NOME DO CLIENTE">
+        </DIV>
+        <DIV CLASS="GRUPO-INPUT">
+            <LABEL>WA</LABEL>
+            <INPUT TYPE="TEXT" ID="CLIENTE_WA" PLACEHOLDER="WHATSAPP">
+        </DIV>
+    </DIV>
+
+    <DIV CLASS="CARD-ADICIONAR">
+        <DIV CLASS="GRID-INPUTS">
+            <DIV CLASS="GRUPO-INPUT">
+                <LABEL>PEÇA</LABEL>
+                <INPUT TYPE="TEXT" ID="INPUT_PECA" PLACEHOLDER="NOME DA PEÇA">
+            </DIV>
+            <DIV CLASS="GRUPO-INPUT">
+                <LABEL>CUSTO MATERIAL (R$)</LABEL>
+                <INPUT TYPE="NUMBER" ID="CUSTO_MATERIAL" VALUE="0">
+            </DIV>
+            <BUTTON CLASS="BTN-CALCULAR" ONCLICK="CALCULAR_E_ADICIONAR()">ADICIONAR ITEM</BUTTON>
+        </DIV>
+    </DIV>
+
+    <DIV CLASS="CARD-TABELA">
+        <TABLE CLASS="TABELA-ORCAMENTO">
+            <THEAD>
+                <TR>
+                    <TH>PEÇA</TH>
+                    <TH>MATERIAIS</TH>
+                    <TH>CUSTO BASE</TH>
+                    <TH>AÇÃO</TH>
+                </TR>
+            </THEAD>
+            <TBODY ID="CORPO_TABELA">
+                </TBODY>
+        </TABLE>
+    </DIV>
+
+    <DIV CLASS="CARD-TAXAS">
+        <DIV CLASS="GRID-TAXAS">
+            <DIV CLASS="GRUPO-INPUT">
+                <LABEL>IMP %</LABEL>
+                <INPUT TYPE="NUMBER" ID="TAXA_IMP" VALUE="6">
+            </DIV>
+            <DIV CLASS="GRUPO-INPUT">
+                <LABEL>MKT %</LABEL>
+                <INPUT TYPE="NUMBER" ID="TAXA_MKT" VALUE="0">
+            </DIV>
+            <DIV CLASS="GRUPO-INPUT">
+                <LABEL>EMBALAGEM</LABEL>
+                <INPUT TYPE="NUMBER" ID="VALOR_EMBALAGEM" VALUE="5">
+            </DIV>
+            <DIV CLASS="GRUPO-INPUT">
+                <LABEL>FRETE</LABEL>
+                <INPUT TYPE="NUMBER" ID="VALOR_FRETE" VALUE="0">
+            </DIV>
+            <DIV CLASS="GRUPO-INPUT">
+                <LABEL>MARGEM %</LABEL>
+                <INPUT TYPE="NUMBER" ID="TAXA_MARGEM" VALUE="100">
+            </DIV>
+        </DIV>
+
+        <DIV CLASS="CARD-PRECO-FINAL">
+            <H1 ID="DISPLAY_TOTAL">R$ 0,00</H1>
+        </DIV>
+    </DIV>
+
+</DIV>
+
+<SCRIPT>
+    // LISTA PARA ARMAZENAR OS ITENS DO ORÇAMENTO
+    LET ITENS_ORCAMENTO = [];
+
+    // 1. FUNÇÃO PARA CALCULAR E LANÇAR NA TABELA
+    FUNCTION CALCULAR_E_ADICIONAR() {
+        CONST NOME = DOCUMENT.GETELEMENTBYID('INPUT_PECA').VALUE;
+        CONST CUSTO = PARSEFLOAT(DOCUMENT.GETELEMENTBYID('CUSTO_MATERIAL').VALUE) || 0;
+
+        IF (NOME === "") {
+            ALERT("INFORME O NOME DA PEÇA!");
+            RETURN;
         }
 
-        BODY {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--azul-escuro);
-            color: var(--branco);
-            margin: 0;
-            padding: 20px;
-            text-transform: uppercase;
-        }
+        // ADICIONA AO ARRAY
+        ITENS_ORCAMENTO.PUSH({ NOME: NOME, CUSTO: CUSTO });
 
-        .CONTAINER {
-            max-width: 900px;
-            margin: 0 auto;
-        }
+        // ATUALIZA A INTERFACE
+        RENDERIZAR_TABELA();
+        RECALCULAR_TOTAL_GERAL();
 
-        .CARD {
-            background-color: var(--azul-claro);
-            padding: 25px;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            margin-bottom: 20px;
-        }
-
-        H2 { border-bottom: 2px solid var(--destaque); padding-bottom: 10px; }
-
-        .GRID-INPUTS {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-        }
-
-        .GRUPO-INPUT { display: flex; flex-direction: column; }
-
-        LABEL { font-size: 0.8rem; margin-bottom: 5px; color: var(--destaque); }
-
-        INPUT {
-            padding: 10px;
-            border-radius: 4px;
-            border: none;
-            background: var(--azul-escuro);
-            color: white;
-            font-weight: BOLD;
-        }
-
-        .BOTOES-ACAO {
-            margin-top: 20px;
-            display: flex;
-            gap: 10px;
-        }
-
-        BUTTON {
-            padding: 12px 20px;
-            cursor: pointer;
-            border: none;
-            border-radius: 4px;
-            font-weight: BOLD;
-            transition: 0.3s;
-        }
-
-        .BTN-CALCULAR { background-color: var(--destaque); color: var(--azul-escuro); }
-        .BTN-ADICIONAR { background-color: #28A745; color: white; }
-        .BTN-EXCLUIR { background-color: #DC3545; color: white; padding: 5px 10px; font-size: 0.7rem; }
-
-        TABLE {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-            background: var(--azul-claro);
-        }
-
-        TH, TD {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #303C55;
-        }
-
-        TH { color: var(--destaque); }
-
-        .RESULTADO-FINAL {
-            font-size: 1.5rem;
-            text-align: center;
-            margin-top: 20px;
-            padding: 15px;
-            border: 2px dashed var(--destaque);
-        }
-    </style>
-</head>
-<body>
-
-<div class="CONTAINER">
-    <div class="CARD">
-        <h2>CALCULADORA DE CUSTO - CB2K 3D</h2>
-        <div class="GRID-INPUTS">
-            <div class="GRUPO-INPUT">
-                <label>NOME DA PEÇA</label>
-                <input type="text" id="NOME_PECA" placeholder="EX: SUPORTE ARTICULADO">
-            </div>
-            <div class="GRUPO-INPUT">
-                <label>PESO (GRAMAS)</label>
-                <input type="number" id="PESO" value="0">
-            </div>
-            <div class="GRUPO-INPUT">
-                <label>PREÇO FILAMENTO (R$/KG)</label>
-                <input type="number" id="PRECO_FILAMENTO" value="120">
-            </div>
-            <div class="GRUPO-INPUT">
-                <label>TEMPO (HORAS)</label>
-                <input type="number" id="TEMPO" value="0">
-            </div>
-            <div class="GRUPO-INPUT">
-                <label>CONSUMO MÁQUINA (W)</label>
-                <input type="number" id="CONSUMO" value="150">
-            </div>
-            <div class="GRUPO-INPUT">
-                <label>VALOR KWH (R$)</label>
-                <input type="number" id="KWH" value="0.85">
-            </div>
-            <div class="GRUPO-INPUT">
-                <label>HORA MÁQUINA (R$)</label>
-                <input type="number" id="HORA_MAQ" value="2.00">
-            </div>
-            <div class="GRUPO-INPUT">
-                <label>MARGEM LUCRO (%)</label>
-                <input type="number" id="MARGEM" value="100">
-            </div>
-        </div>
-
-        <div class="BOTOES-ACAO">
-            <button class="BTN-CALCULAR" onclick="EFETUAR_CALCULO()">CALCULAR PREÇO</button>
-            <button class="BTN-ADICIONAR" onclick="TRANSFERIR_PARA_ORCAMENTO()">ADICIONAR AO ORÇAMENTO</button>
-        </div>
-
-        <div class="RESULTADO-FINAL" id="AREA_RESULTADO">
-            PREÇO SUGERIDO: R$ 0,00
-        </div>
-    </div>
-
-    <div class="CARD">
-        <h2>RESUMO DO ORÇAMENTO</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>ITEM</th>
-                    <th>PREÇO UNITÁRIO</th>
-                    <th>AÇÕES</th>
-                </tr>
-            </thead>
-            <tbody id="CORPO_TABELA">
-                </tbody>
-        </table>
-    </div>
-</div>
-
-<script>
-    let DADOS_ULTIMO_CALCULO = null;
-
-    function EFETUAR_CALCULO() {
-        const NOME = document.getElementById('NOME_PECA').value;
-        const PESO = parseFloat(document.getElementById('PESO').value) || 0;
-        const PRECO_FIL = parseFloat(document.getElementById('PRECO_FILAMENTO').value) || 0;
-        const TEMPO = parseFloat(document.getElementById('TEMPO').value) || 0;
-        const CONSUMO = parseFloat(document.getElementById('CONSUMO').value) || 0;
-        const KWH = parseFloat(document.getElementById('KWH').value) || 0;
-        const HORA_MAQ = parseFloat(document.getElementById('HORA_MAQ').value) || 0;
-        const MARGEM = parseFloat(document.getElementById('MARGEM').value) || 0;
-
-        // LÓGICA DE CÁLCULO
-        const CUSTO_MAT = (PESO / 1000) * PRECO_FIL;
-        const CUSTO_ENG = (CONSUMO / 1000) * TEMPO * KWH;
-        const CUSTO_OP = TEMPO * HORA_MAQ;
-        const CUSTO_TOTAL = CUSTO_MAT + CUSTO_ENG + CUSTO_OP;
-        const PRECO_FINAL = CUSTO_TOTAL + (CUSTO_TOTAL * MARGEM / 100);
-
-        DADOS_ULTIMO_CALCULO = {
-            NOME: NOME || "PEÇA SEM NOME",
-            VALOR: PRECO_FINAL.toFixed(2)
-        };
-
-        document.getElementById('AREA_RESULTADO').innerText = `PREÇO SUGERIDO: R$ ${DADOS_ULTIMO_CALCULO.VALOR}`;
+        // LIMPA CAMPOS
+        DOCUMENT.GETELEMENTBYID('INPUT_PECA').VALUE = "";
+        DOCUMENT.GETELEMENTBYID('CUSTO_MATERIAL').VALUE = "0";
     }
 
-    function TRANSFERIR_PARA_ORCAMENTO() {
-        if (!DADOS_ULTIMO_CALCULO) {
-            alert("PRIMEIRO CLIQUE EM CALCULAR!");
-            return;
-        }
+    // 2. FUNÇÃO PARA DESENHAR A TABELA
+    FUNCTION RENDERIZAR_TABELA() {
+        CONST CORPO = DOCUMENT.GETELEMENTBYID('CORPO_TABELA');
+        CORPO.INNERHTML = "";
 
-        const TABELA = document.getElementById('CORPO_TABELA');
-        const LINHA = TABELA.insertRow();
-
-        LINHA.innerHTML = `
-            <td>${DADOS_ULTIMO_CALCULO.NOME.toUpperCase()}</td>
-            <td>R$ ${DADOS_ULTIMO_CALCULO.VALOR}</td>
-            <td><button class="BTN-EXCLUIR" onclick="REMOVER_LINHA(this)">EXCLUIR</button></td>
-        `;
-
-        // RESET PARA PRÓXIMO ITEM
-        DADOS_ULTIMO_CALCULO = null;
-        document.getElementById('NOME_PECA').value = "";
-        document.getElementById('PESO').value = "0";
-        document.getElementById('TEMPO').value = "0";
+        ITENS_ORCAMENTO.FOREACH((ITEM, INDEX) => {
+            CONST LINHA = CORPO.INSERTROW();
+            LINHA.INNERHTML = `
+                <TD>${ITEM.NOME.TOUPPERCASE()}</TD>
+                <TD>FILAMENTO</TD>
+                <TD>R$ ${ITEM.CUSTO.FIXED(2)}</TD>
+                <TD><BUTTON ONCLICK="REMOVER_ITEM(${INDEX})">REMOVER</BUTTON></TD>
+            `;
+        });
     }
 
-    function REMOVER_LINHA(botao) {
-        const LINHA = botao.parentNode.parentNode;
-        LINHA.parentNode.removeChild(LINHA);
-    }
-</script>
+    // 3. LÓGICA DE CÁLCULO FINAL (SOMA TUDO + TAXAS DA TELA)
+    FUNCTION RECALCULAR_TOTAL_GERAL() {
+        LET SOMA_BASE = ITENS_ORCAMENTO.REDUCE((ACC, ITEM) => ACC + ITEM.CUSTO, 0);
+        
+        // CAPTURA TAXAS DA TELA
+        CONST IMP = PARSEFLOAT(DOCUMENT.GETELEMENTBYID('TAXA_IMP').VALUE) / 100;
+        CONST MKT = PARSEFLOAT(DOCUMENT.GETELEMENTBYID('TAXA_MKT').VALUE) / 100;
+        CONST EMB = PARSEFLOAT(DOCUMENT.GETELEMENTBYID('VALOR_EMBALAGEM').VALUE) || 0;
+        CONST FRETE = PARSEFLOAT(DOCUMENT.GETELEMENTBYID('VALOR_FRETE').VALUE) || 0;
+        CONST MARGEM = PARSEFLOAT(DOCUMENT.GETELEMENTBYID('TAXA_MARGEM').VALUE) / 100;
 
-</body>
-</html>
+        // CÁLCULO: (BASE + EMBALAGEM + FRETE) * IMPOSTOS * MARGEM
+        LET TOTAL = (SOMA_BASE + EMB + FRETE);
+        TOTAL = TOTAL + (TOTAL * IMP) + (TOTAL * MKT);
+        TOTAL = TOTAL + (TOTAL * MARGEM);
+
+        DOCUMENT.GETELEMENTBYID('DISPLAY_TOTAL').INNERTEXT = `R$ ${TOTAL.FIXED(2)}`;
+    }
+
+    FUNCTION REMOVER_ITEM(INDEX) {
+        ITENS_ORCAMENTO.SPLICE(INDEX, 1);
+        RENDERIZAR_TABELA();
+        RECALCULAR_TOTAL_GERAL();
+    }
+</SCRIPT>
+
+       
