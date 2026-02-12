@@ -1,204 +1,163 @@
 <!DOCTYPE html>
-<html lang="PT-BR">
-<head>
-    <meta charset="UTF-8">
-    <title>SISTEMA INTEGRADO CB2K 3D</title>
-    <style>
-        :root {
-            --fundo: #F0F2F5;
-            --azul-cb2k: #3B82F6;
-            --branco: #FFFFFF;
-            --cinza-texto: #64748B;
-        }
-
-        * { box-sizing: border-box; text-transform: uppercase; font-family: 'Segoe UI', sans-serif; }
-
-        BODY { background-color: var(--fundo); margin: 0; padding: 20px; }
-
-        .CONTAINER { max-width: 1000px; margin: 0 auto; }
-
-        .CARD { 
-            background: var(--branco); 
-            padding: 25px; 
-            border-radius: 12px; 
-            margin-bottom: 20px; 
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-        }
-
-        .GRID-2 { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
-        .GRID-3 { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 15px; }
-        .GRID-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
-
-        .GRUPO-INPUT { display: flex; flex-direction: column; margin-bottom: 10px; }
-        LABEL { font-size: 11px; font-weight: bold; color: var(--cinza-texto); margin-bottom: 5px; }
-        INPUT { padding: 12px; border: 1px solid #E2E8F0; border-radius: 6px; background: #F8FAFC; }
-
-        TABLE { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        TH { background: #F8FAFC; padding: 12px; text-align: left; font-size: 12px; color: var(--cinza-texto); border-bottom: 2px solid #E2E8F0; }
-        TD { padding: 12px; border-bottom: 1px solid #F1F5F9; font-size: 13px; }
-
-        .DISPLAY-TOTAL-GERAL {
-            background: #EBF2FF;
-            border: 2px solid var(--azul-cb2k);
-            border-radius: 10px;
-            padding: 30px;
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        #VALOR_FINAL { font-size: 56px; color: var(--azul-cb2k); font-weight: bold; margin: 10px 0; }
-
-        .BTN-PRINCIPAL {
-            background: var(--azul-cb2k);
-            color: white;
-            border: none;
-            padding: 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            margin-top: 18px;
-            transition: 0.2s;
-        }
-
-        .BTN-PRINCIPAL:HOVER { filter: brightness(0.9); }
-        .BTN-REMOVER { color: #EF4444; border: none; background: none; cursor: pointer; font-weight: bold; }
-    </style>
-</head>
-<body>
-
-<div class="CONTAINER">
-    <h1 id="STATUS_ORCAMENTO">NOVO ORÇAMENTO</h1>
-
-    <div class="CARD">
-        <div class="GRID-2">
-            <div class="GRUPO-INPUT">
-                <label>NOME DO CLIENTE</label>
-                <input type="text" id="CLIENTE_NOME" oninput="ATUALIZAR_DADOS_CLIENTE()">
-            </div>
-            <div class="GRUPO-INPUT">
-                <label>WHATSAPP (WA)</label>
-                <input type="text" id="CLIENTE_WA" oninput="ATUALIZAR_DADOS_CLIENTE()">
-            </div>
-        </div>
-    </div>
-
-    <div class="CARD">
-        <div class="GRID-3">
-            <div class="GRUPO-INPUT">
-                <label>NOME DA PEÇA</label>
-                <input type="text" id="PRODUTO_NOME" placeholder="EX: MASCOTE GARÇA">
-            </div>
-            <div class="GRUPO-INPUT">
-                <label>CUSTO BASE (R$)</label>
-                <input type="number" id="PRODUTO_CUSTO" value="0">
-            </div>
-            <button class="BTN-PRINCIPAL" onclick="ADICIONAR_ITEM()">ADICIONAR ITEM</button>
-        </div>
-    </div>
-
-    <div class="CARD">
-        <table>
-            <thead>
-                <tr>
-                    <th>PEÇA</th>
-                    <th>MATERIAIS</th>
-                    <th>CUSTO UNITÁRIO</th>
-                    <th>AÇÃO</th>
-                </tr>
-            </thead>
-            <tbody id="CORPO_TABELA">
-                </tbody>
-        </table>
-    </div>
-
-    <div class="CARD">
-        <div class="GRID-5">
-            <div class="GRUPO-INPUT"><label>IMP %</label><input type="number" id="TAXA_IMP" value="6" oninput="CALCULAR_TOTAL_GERAL()"></div>
-            <div class="GRUPO-INPUT"><label>MKT %</label><input type="number" id="TAXA_MKT" value="0" oninput="CALCULAR_TOTAL_GERAL()"></div>
-            <div class="GRUPO-INPUT"><label>EMBALAGEM (R$)</label><input type="number" id="VAL_EMB" value="5" oninput="CALCULAR_TOTAL_GERAL()"></div>
-            <div class="GRUPO-INPUT"><label>FRETE (R$)</label><input type="number" id="VAL_FRETE" value="0" oninput="CALCULAR_TOTAL_GERAL()"></div>
-            <div class="GRUPO-INPUT"><label>MARGEM %</label><input type="number" id="TAXA_MARGEM" value="100" oninput="CALCULAR_TOTAL_GERAL()"></div>
-        </div>
-
-        <div class="DISPLAY-TOTAL-GERAL">
-            <label style="color: var(--azul-cb2k)">TOTAL DO ORÇAMENTO PARA <SPAN id="RESUMO_CLIENTE">---</SPAN></label>
-            <h1 id="VALOR_FINAL">R$ 0,00</h1>
-        </div>
-    </div>
-</div>
-
-<script>
-    // OBJETO ÚNICO QUE CONCENTRA TUDO
-    let ORCAMENTO = {
-        cliente: "",
-        wa: "",
-        itens: [],
-        taxas: { imp: 6, mkt: 0, emb: 5, frete: 0, margem: 100 }
-    };
-
-    function ATUALIZAR_DADOS_CLIENTE() {
-        ORCAMENTO.cliente = document.getElementById('CLIENTE_NOME').value;
-        ORCAMENTO.wa = document.getElementById('CLIENTE_WA').value;
-        document.getElementById('RESUMO_CLIENTE').innerText = ORCAMENTO.cliente || "---";
-        document.getElementById('STATUS_ORCAMENTO').innerText = ORCAMENTO.cliente ? "ORÇAMENTO: " + ORCAMENTO.cliente : "NOVO ORÇAMENTO";
-    }
-
-    function ADICIONAR_ITEM() {
-        const nome = document.getElementById('PRODUTO_NOME').value;
-        const custo = parseFloat(document.getElementById('PRODUTO_CUSTO').value) || 0;
-
-        if (!nome) return alert("DIGITE O NOME DA PEÇA!");
-
-        // ADICIONA À LISTA
-        ORCAMENTO.itens.push({ nome: nome, custo: custo });
-
-        // LIMPA CAMPOS DE ENTRADA
-        document.getElementById('PRODUTO_NOME').value = "";
-        document.getElementById('PRODUTO_CUSTO').value = "0";
-
-        RENDERIZAR_TABELA();
-        CALCULAR_TOTAL_GERAL();
-    }
-
-    function RENDERIZAR_TABELA() {
-        const corpo = document.getElementById('CORPO_TABELA');
-        corpo.innerHTML = "";
-
-        ORCAMENTO.itens.forEach((item, index) => {
-            const linha = corpo.insertRow();
-            linha.innerHTML = `
-                <td>${item.nome}</td>
-                <td>IMPRESSÃO 3D</td>
-                <td>R$ ${item.custo.toFixed(2)}</td>
-                <td><button class="BTN-REMOVER" onclick="REMOVER_ITEM(${index})">EXCLUIR</button></td>
-            `;
-        });
-    }
-
-    function CALCULAR_TOTAL_GERAL() {
-        let somaBase = ORCAMENTO.itens.reduce((acc, i) => acc + i.custo, 0);
+<HTML LANG="PT-BR">
+<HEAD>
+    <META CHARSET="UTF-8">
+    <STYLE>
+        /* PADRONIZAÇÃO VISUAL CB2K */
+        * { BOX-SIZING: BORDER-BOX; TEXT-TRANSFORM: UPPERCASE; FONT-FAMILY: 'SEGUE UI', SANS-SERIF; }
+        BODY { BACKGROUND-COLOR: #F0F2F5; MARGIN: 0; PADDING: 20px; }
+        .CARD { BACKGROUND: WHITE; PADDING: 20px; BORDER-RADIUS: 12px; MARGIN-BOTTOM: 20px; BOX-SHADOW: 0 2PX 10PX RGBA(0,0,0,0.05); }
         
-        // CAPTURA TAXAS DA TELA
-        const imp = parseFloat(document.getElementById('TAXA_IMP').value) / 100;
-        const mkt = parseFloat(document.getElementById('TAXA_MKT').value) / 100;
-        const emb = parseFloat(document.getElementById('VAL_EMB').value) || 0;
-        const frete = parseFloat(document.getElementById('VAL_FRETE').value) || 0;
-        const margem = parseFloat(document.getElementById('TAXA_MARGEM').value) / 100;
+        /* TABELA CONFORME IMAGEM */
+        TABLE { WIDTH: 100%; BORDER-COLLAPSE: COLLAPSE; MARGIN-TOP: 10px; }
+        TH { BACKGROUND: #F8FAFC; PADDING: 15px; TEXT-ALIGN: LEFT; COLOR: #475569; FONT-SIZE: 12px; BORDER-BOTTOM: 2PX SOLID #E2E8F0; }
+        TD { PADDING: 15px; BORDER-BOTTOM: 1px SOLID #F1F5F9; FONT-SIZE: 13px; COLOR: #1E293B; }
 
-        // LÓGICA DE CÁLCULO INTEGRADA
-        let totalCusto = somaBase + emb + frete;
-        let totalComImpostos = totalCusto * (1 + imp + mkt);
-        let precoFinal = totalComImpostos * (1 + margem);
+        /* INPUTS E BOTOES */
+        .GRID-ENTRADA { DISPLAY: GRID; GRID-TEMPLATE-COLUMNS: 2FR 1FR 1FR; GAP: 15px; MARGIN-BOTTOM: 15px; }
+        .GRUPO-INPUT { DISPLAY: FLEX; FLEX-DIRECTION: COLUMN; }
+        LABEL { FONT-SIZE: 11px; FONT-WEIGHT: BOLD; COLOR: #64748B; MARGIN-BOTTOM: 5px; }
+        INPUT { PADDING: 12px; BORDER: 1px SOLID #E2E8F0; BORDER-RADIUS: 8px; BACKGROUND: #F8FAFC; }
+        
+        .BTN-ADICIONAR { BACKGROUND: #3B82F6; COLOR: WHITE; BORDER: NONE; PADDING: 12px; BORDER-RADIUS: 8px; CURSOR: POINTER; FONT-WEIGHT: BOLD; MARGIN-TOP: 18px; }
+        .BTN-REMOVER { COLOR: #EF4444; BORDER: NONE; BACKGROUND: NONE; CURSOR: POINTER; FONT-WEIGHT: BOLD; }
 
-        document.getElementById('VALOR_FINAL').innerText = "R$ " + precoFinal.toFixed(2);
-    }
+        /* DISPLAY DE VALOR FINAL */
+        .CARD-PRECO-AZUL { BACKGROUND: #EBF2FF; BORDER: 2px SOLID #3B82F6; BORDER-RADIUS: 10px; PADDING: 25px; TEXT-ALIGN: CENTER; }
+        #VALOR_FINAL_DISPLAY { FONT-SIZE: 50px; COLOR: #3B82F6; FONT-WEIGHT: BOLD; MARGIN: 0; }
+    </STYLE>
+</HEAD>
+<BODY>
 
-    function REMOVER_ITEM(index) {
-        ORCAMENTO.itens.splice(index, 1);
-        RENDERIZAR_TABELA();
-        CALCULAR_TOTAL_GERAL();
-    }
-</script>
+    <DIV CLASS="CONTAINER">
+        <H2>SISTEMA DE ORÇAMENTO CB2K</H2>
 
-</body>
-</html>
+        <DIV CLASS="CARD">
+            <DIV CLASS="GRID-ENTRADA" STYLE="GRID-TEMPLATE-COLUMNS: 3FR 1FR;">
+                <DIV CLASS="GRUPO-INPUT">
+                    <LABEL>CLIENTE</LABEL>
+                    <INPUT TYPE="TEXT" ID="CLIENTE_NOME" ONINPUT="ATUALIZAR_DADOS()">
+                </DIV>
+                <DIV CLASS="GRUPO-INPUT">
+                    <LABEL>WA</LABEL>
+                    <INPUT TYPE="TEXT" ID="CLIENTE_WA" ONINPUT="ATUALIZAR_DADOS()">
+                </DIV>
+            </DIV>
+        </DIV>
+
+        <DIV CLASS="CARD">
+            <DIV CLASS="GRID-ENTRADA">
+                <DIV CLASS="GRUPO-INPUT">
+                    <LABEL>NOME DA PEÇA</LABEL>
+                    <INPUT TYPE="TEXT" ID="PECA_NOME" PLACEHOLDER="DIGITE O NOME">
+                </DIV>
+                <DIV CLASS="GRUPO-INPUT">
+                    <LABEL>CUSTO BASE (R$)</LABEL>
+                    <INPUT TYPE="NUMBER" ID="PECA_CUSTO" VALUE="0">
+                </DIV>
+                <BUTTON CLASS="BTN-ADICIONAR" ONCLICK="ADICIONAR_ITEM_TABELA()">ADICIONAR AO ORÇAMENTO</BUTTON>
+            </DIV>
+        </DIV>
+
+        <DIV CLASS="CARD">
+            <TABLE>
+                <THEAD>
+                    <TR>
+                        <TH>PEÇA</TH>
+                        <TH>MATERIAIS</TH>
+                        <TH>CUSTO BASE</TH>
+                        <TH>AÇÃO</TH>
+                    </TR>
+                </THEAD>
+                <TBODY ID="CORPO_TABELA">
+                    </TBODY>
+            </TABLE>
+        </DIV>
+
+        <DIV CLASS="CARD">
+            <DIV CLASS="GRID-ENTRADA" STYLE="GRID-TEMPLATE-COLUMNS: REPEAT(5, 1FR);">
+                <DIV CLASS="GRUPO-INPUT"><LABEL>IMP %</LABEL><INPUT TYPE="NUMBER" ID="T_IMP" VALUE="6" ONINPUT="CALCULAR_TUDO()"></DIV>
+                <DIV CLASS="GRUPO-INPUT"><LABEL>MKT %</LABEL><INPUT TYPE="NUMBER" ID="T_MKT" VALUE="0" ONINPUT="CALCULAR_TUDO()"></DIV>
+                <DIV CLASS="GRUPO-INPUT"><LABEL>EMBALAGEM</LABEL><INPUT TYPE="NUMBER" ID="T_EMB" VALUE="5" ONINPUT="CALCULAR_TUDO()"></DIV>
+                <DIV CLASS="GRUPO-INPUT"><LABEL>FRETE</LABEL><INPUT TYPE="NUMBER" ID="T_FRETE" VALUE="0" ONINPUT="CALCULAR_TUDO()"></DIV>
+                <DIV CLASS="GRUPO-INPUT"><LABEL>MARGEM %</LABEL><INPUT TYPE="NUMBER" ID="T_MARGEM" VALUE="100" ONINPUT="CALCULAR_TUDO()"></DIV>
+            </DIV>
+
+            <DIV CLASS="CARD-PRECO-AZUL">
+                <H1 ID="VALOR_FINAL_DISPLAY">R$ 0,00</H1>
+                <SPAN ID="INFO_CLIENTE" STYLE="FONT-SIZE: 12PX; COLOR: #3B82F6;"></SPAN>
+            </DIV>
+        </DIV>
+    </DIV>
+
+    <SCRIPT>
+        // ESTADO GLOBAL DO ORÇAMENTO
+        LET LISTA_PECAS = [];
+        LET DADOS_CLIENTE = { NOME: "", WA: "" };
+
+        FUNCTION ATUALIZAR_DADOS() {
+            DADOS_CLIENTE.NOME = DOCUMENT.GETELEMENTBYID('CLIENTE_NOME').VALUE.TOUPPERCASE();
+            DADOS_CLIENTE.WA = DOCUMENT.GETELEMENTBYID('CLIENTE_WA').VALUE;
+            DOCUMENT.GETELEMENTBYID('INFO_CLIENTE').INNERTEXT = "CLIENTE: " + DADOS_CLIENTE.NOME;
+        }
+
+        // FUNÇÃO QUE FAZ A PEÇA CONSTAR NA TABELA
+        FUNCTION ADICIONAR_ITEM_TABELA() {
+            CONST NOME = DOCUMENT.GETELEMENTBYID('PECA_NOME').VALUE;
+            CONST CUSTO = PARSEFLOAT(DOCUMENT.GETELEMENTBYID('PECA_CUSTO').VALUE) || 0;
+
+            IF (NOME === "") {
+                ALERT("DIGITE O NOME DA PEÇA!");
+                RETURN;
+            }
+
+            // ADICIONA AO ARRAY
+            LISTA_PECAS.PUSH({ NOME: NOME.TOUPPERCASE(), CUSTO: CUSTO });
+
+            // LIMPA ENTRADA
+            DOCUMENT.GETELEMENTBYID('PECA_NOME').VALUE = "";
+            DOCUMENT.GETELEMENTBYID('PECA_CUSTO').VALUE = "0";
+
+            RENDERIZAR_TABELA();
+            CALCULAR_TUDO();
+        }
+
+        FUNCTION RENDERIZAR_TABELA() {
+            CONST TBODY = DOCUMENT.GETELEMENTBYID('CORPO_TABELA');
+            TBODY.INNERHTML = ""; // RESET VISUAL
+
+            LISTA_PECAS.FOREACH((ITEM, INDEX) => {
+                CONST LINHA = TBODY.INSERTROW();
+                LINHA.INNERHTML = `
+                    <TD>${ITEM.NOME}</TD>
+                    <TD>IMPRESSÃO 3D</TD>
+                    <TD>R$ ${ITEM.CUSTO.FIXED(2)}</TD>
+                    <TD><BUTTON CLASS="BTN-REMOVER" ONCLICK="REMOVER_ITEM(${INDEX})">REMOVER</BUTTON></TD>
+                `;
+            });
+        }
+
+        FUNCTION CALCULAR_TUDO() {
+            LET SOMA_BASE = LISTA_PECAS.REDUCE((ACC, I) => ACC + I.CUSTO, 0);
+            
+            CONST IMP = PARSEFLOAT(DOCUMENT.GETELEMENTBYID('T_IMP').VALUE) / 100;
+            CONST MKT = PARSEFLOAT(DOCUMENT.GETELEMENTBYID('T_MKT').VALUE) / 100;
+            CONST EMB = PARSEFLOAT(DOCUMENT.GETELEMENTBYID('T_EMB').VALUE) || 0;
+            CONST FRETE = PARSEFLOAT(DOCUMENT.GETELEMENTBYID('T_FRETE').VALUE) || 0;
+            CONST MARGEM = PARSEFLOAT(DOCUMENT.GETELEMENTBYID('T_MARGEM').VALUE) / 100;
+
+            LET SUBTOTAL = SOMA_BASE + EMB + FRETE;
+            LET TOTAL = (SUBTOTAL * (1 + IMP + MKT)) * (1 + MARGEM);
+
+            DOCUMENT.GETELEMENTBYID('VALOR_FINAL_DISPLAY').INNERTEXT = "R$ " + TOTAL.FIXED(2);
+        }
+
+        FUNCTION REMOVER_ITEM(INDEX) {
+            LISTA_PECAS.SPLICE(INDEX, 1);
+            RENDERIZAR_TABELA();
+            CALCULAR_TUDO();
+        }
+    </SCRIPT>
+</BODY>
+</HTML>
+
