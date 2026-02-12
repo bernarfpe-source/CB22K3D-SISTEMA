@@ -1,142 +1,196 @@
-<DIV CLASS="CONTAINER-ORCAMENTO">
-    
-    <DIV CLASS="CARD-CLIENTE">
-        <DIV CLASS="GRUPO-INPUT">
-            <LABEL>CLIENTE</LABEL>
-            <INPUT TYPE="TEXT" ID="CLIENTE_NOME" PLACEHOLDER="NOME DO CLIENTE">
-        </DIV>
-        <DIV CLASS="GRUPO-INPUT">
-            <LABEL>WA</LABEL>
-            <INPUT TYPE="TEXT" ID="CLIENTE_WA" PLACEHOLDER="WHATSAPP">
-        </DIV>
-    </DIV>
-
-    <DIV CLASS="CARD-ADICIONAR">
-        <DIV CLASS="GRID-INPUTS">
-            <DIV CLASS="GRUPO-INPUT">
-                <LABEL>PEÇA</LABEL>
-                <INPUT TYPE="TEXT" ID="INPUT_PECA" PLACEHOLDER="NOME DA PEÇA">
-            </DIV>
-            <DIV CLASS="GRUPO-INPUT">
-                <LABEL>CUSTO MATERIAL (R$)</LABEL>
-                <INPUT TYPE="NUMBER" ID="CUSTO_MATERIAL" VALUE="0">
-            </DIV>
-            <BUTTON CLASS="BTN-CALCULAR" ONCLICK="CALCULAR_E_ADICIONAR()">ADICIONAR ITEM</BUTTON>
-        </DIV>
-    </DIV>
-
-    <DIV CLASS="CARD-TABELA">
-        <TABLE CLASS="TABELA-ORCAMENTO">
-            <THEAD>
-                <TR>
-                    <TH>PEÇA</TH>
-                    <TH>MATERIAIS</TH>
-                    <TH>CUSTO BASE</TH>
-                    <TH>AÇÃO</TH>
-                </TR>
-            </THEAD>
-            <TBODY ID="CORPO_TABELA">
-                </TBODY>
-        </TABLE>
-    </DIV>
-
-    <DIV CLASS="CARD-TAXAS">
-        <DIV CLASS="GRID-TAXAS">
-            <DIV CLASS="GRUPO-INPUT">
-                <LABEL>IMP %</LABEL>
-                <INPUT TYPE="NUMBER" ID="TAXA_IMP" VALUE="6">
-            </DIV>
-            <DIV CLASS="GRUPO-INPUT">
-                <LABEL>MKT %</LABEL>
-                <INPUT TYPE="NUMBER" ID="TAXA_MKT" VALUE="0">
-            </DIV>
-            <DIV CLASS="GRUPO-INPUT">
-                <LABEL>EMBALAGEM</LABEL>
-                <INPUT TYPE="NUMBER" ID="VALOR_EMBALAGEM" VALUE="5">
-            </DIV>
-            <DIV CLASS="GRUPO-INPUT">
-                <LABEL>FRETE</LABEL>
-                <INPUT TYPE="NUMBER" ID="VALOR_FRETE" VALUE="0">
-            </DIV>
-            <DIV CLASS="GRUPO-INPUT">
-                <LABEL>MARGEM %</LABEL>
-                <INPUT TYPE="NUMBER" ID="TAXA_MARGEM" VALUE="100">
-            </DIV>
-        </DIV>
-
-        <DIV CLASS="CARD-PRECO-FINAL">
-            <H1 ID="DISPLAY_TOTAL">R$ 0,00</H1>
-        </DIV>
-    </DIV>
-
-</DIV>
-
-<SCRIPT>
-    // LISTA PARA ARMAZENAR OS ITENS DO ORÇAMENTO
-    LET ITENS_ORCAMENTO = [];
-
-    // 1. FUNÇÃO PARA CALCULAR E LANÇAR NA TABELA
-    FUNCTION CALCULAR_E_ADICIONAR() {
-        CONST NOME = DOCUMENT.GETELEMENTBYID('INPUT_PECA').VALUE;
-        CONST CUSTO = PARSEFLOAT(DOCUMENT.GETELEMENTBYID('CUSTO_MATERIAL').VALUE) || 0;
-
-        IF (NOME === "") {
-            ALERT("INFORME O NOME DA PEÇA!");
-            RETURN;
+<!DOCTYPE html>
+<html lang="PT-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>SISTEMA DE ORÇAMENTO - CB2K 3D</title>
+    <style>
+        :root {
+            --fundo: #F0F2F5;
+            --azul-primario: #3B82F6;
+            --texto-cor: #1E293B;
+            --branco: #FFFFFF;
         }
 
-        // ADICIONA AO ARRAY
-        ITENS_ORCAMENTO.PUSH({ NOME: NOME, CUSTO: CUSTO });
+        * { box-sizing: border-box; text-transform: uppercase; }
 
-        // ATUALIZA A INTERFACE
-        RENDERIZAR_TABELA();
-        RECALCULAR_TOTAL_GERAL();
+        BODY { 
+            font-family: 'Segoe UI', sans-serif; 
+            background-color: var(--fundo); 
+            margin: 0; padding: 20px; 
+        }
 
-        // LIMPA CAMPOS
-        DOCUMENT.GETELEMENTBYID('INPUT_PECA').VALUE = "";
-        DOCUMENT.GETELEMENTBYID('CUSTO_MATERIAL').VALUE = "0";
+        .CONTAINER { max-width: 1100px; margin: 0 auto; }
+
+        .CARD { 
+            background: var(--branco); 
+            padding: 20px; 
+            border-radius: 15px; 
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .GRID-3 { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 15px; }
+        .GRID-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+
+        .GRUPO-INPUT { display: flex; flex-direction: column; margin-bottom: 10px; }
+        
+        LABEL { font-size: 11px; font-weight: bold; color: #64748B; margin-bottom: 5px; }
+        
+        INPUT { 
+            padding: 12px; 
+            border: 1px solid #E2E8F0; 
+            border-radius: 8px; 
+            background: #F8FAFC;
+        }
+
+        TABLE { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        TH { background: #F1F5F9; padding: 12px; font-size: 12px; text-align: left; color: #475569; }
+        TD { padding: 12px; border-bottom: 1px solid #F1F5F9; font-size: 13px; }
+
+        .CARD-TOTAL {
+            background: #EBF2FF;
+            border: 2px solid var(--azul-primario);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        #VALOR_FINAL { font-size: 48px; color: var(--azul-primario); font-weight: bold; margin: 0; }
+
+        .BTN-ADICIONAR {
+            background: var(--azul-primario);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 18px;
+        }
+
+        .BTN-REMOVER { color: #EF4444; border: none; background: none; cursor: pointer; font-size: 11px; }
+    </style>
+</head>
+<body>
+
+<div class="CONTAINER">
+    <h1 id="TITULO_ORCAMENTO">ORÇAMENTO</h1>
+
+    <div class="CARD">
+        <div class="GRID-3" style="grid-template-columns: 2fr 1fr;">
+            <div class="GRUPO-INPUT">
+                <label>CLIENTE</label>
+                <input type="text" id="CLIENTE_NOME">
+            </div>
+            <div class="GRUPO-INPUT">
+                <label>WA (WHATSAPP)</label>
+                <input type="text" id="CLIENTE_WA">
+            </div>
+        </div>
+    </div>
+
+    <div class="CARD">
+        <div class="GRID-3">
+            <div class="GRUPO-INPUT">
+                <label>PEÇA</label>
+                <input type="text" id="PRODUTO_NOME">
+            </div>
+            <div class="GRUPO-INPUT">
+                <label>CUSTO BASE (R$)</label>
+                <input type="number" id="PRODUTO_CUSTO" value="0">
+            </div>
+            <button class="BTN-ADICIONAR" onclick="ADICIONAR_AO_LISTADO()">ADICIONAR PEÇA</button>
+        </div>
+    </div>
+
+    <div class="CARD">
+        <table>
+            <thead>
+                <tr>
+                    <th>PEÇA</th>
+                    <th>MATERIAIS</th>
+                    <th>CUSTO BASE</th>
+                    <th>AÇÃO</th>
+                </tr>
+            </thead>
+            <tbody id="CORPO_TABELA">
+                </tbody>
+        </table>
+    </div>
+
+    <div class="CARD">
+        <div class="GRID-5">
+            <div class="GRUPO-INPUT"><label>IMP %</label><input type="number" id="TAXA_IMP" value="6" oninput="CALCULAR_TUDO()"></div>
+            <div class="GRUPO-INPUT"><label>MKT %</label><input type="number" id="TAXA_MKT" value="0" oninput="CALCULAR_TUDO()"></div>
+            <div class="GRUPO-INPUT"><label>EMBALAGEM</label><input type="number" id="VAL_EMB" value="5" oninput="CALCULAR_TUDO()"></div>
+            <div class="GRUPO-INPUT"><label>FRETE</label><input type="number" id="VAL_FRETE" value="0" oninput="CALCULAR_TUDO()"></div>
+            <div class="GRUPO-INPUT"><label>MARGEM %</label><input type="number" id="TAXA_MARGEM" value="100" oninput="CALCULAR_TUDO()"></div>
+        </div>
+
+        <div class="CARD-TOTAL">
+            <p style="margin: 0; font-size: 12px; color: #64748B;">VALOR TOTAL DO ORÇAMENTO</p>
+            <h1 id="VALOR_FINAL">R$ 0,00</h1>
+        </div>
+    </div>
+</div>
+
+<script>
+    let LISTA_PRODUTOS = [];
+
+    function ADICIONAR_AO_LISTADO() {
+        const NOME = document.getElementById('PRODUTO_NOME').value;
+        const CUSTO = parseFloat(document.getElementById('PRODUTO_CUSTO').value) || 0;
+
+        if (NOME === "") return alert("DIGITE O NOME DA PEÇA");
+
+        LISTA_PRODUTOS.push({ nome: NOME, custo: CUSTO });
+        
+        document.getElementById('PRODUTO_NOME').value = "";
+        document.getElementById('PRODUTO_CUSTO').value = "0";
+
+        ATUALIZAR_TABELA();
+        CALCULAR_TUDO();
     }
 
-    // 2. FUNÇÃO PARA DESENHAR A TABELA
-    FUNCTION RENDERIZAR_TABELA() {
-        CONST CORPO = DOCUMENT.GETELEMENTBYID('CORPO_TABELA');
-        CORPO.INNERHTML = "";
+    function ATUALIZAR_TABELA() {
+        const CORPO = document.getElementById('CORPO_TABELA');
+        CORPO.innerHTML = "";
 
-        ITENS_ORCAMENTO.FOREACH((ITEM, INDEX) => {
-            CONST LINHA = CORPO.INSERTROW();
-            LINHA.INNERHTML = `
-                <TD>${ITEM.NOME.TOUPPERCASE()}</TD>
-                <TD>FILAMENTO</TD>
-                <TD>R$ ${ITEM.CUSTO.FIXED(2)}</TD>
-                <TD><BUTTON ONCLICK="REMOVER_ITEM(${INDEX})">REMOVER</BUTTON></TD>
+        LISTA_PRODUTOS.forEach((item, index) => {
+            const LINHA = CORPO.insertRow();
+            LINHA.innerHTML = `
+                <td>${item.nome}</td>
+                <td>FILAMENTO 3D</td>
+                <td>R$ ${item.custo.toFixed(2)}</td>
+                <td><button class="BTN-REMOVER" onclick="REMOVER(${index})">REMOVER</button></td>
             `;
         });
     }
 
-    // 3. LÓGICA DE CÁLCULO FINAL (SOMA TUDO + TAXAS DA TELA)
-    FUNCTION RECALCULAR_TOTAL_GERAL() {
-        LET SOMA_BASE = ITENS_ORCAMENTO.REDUCE((ACC, ITEM) => ACC + ITEM.CUSTO, 0);
+    function CALCULAR_TUDO() {
+        let SOMA_BASE = LISTA_PRODUTOS.reduce((acc, item) => acc + item.custo, 0);
         
-        // CAPTURA TAXAS DA TELA
-        CONST IMP = PARSEFLOAT(DOCUMENT.GETELEMENTBYID('TAXA_IMP').VALUE) / 100;
-        CONST MKT = PARSEFLOAT(DOCUMENT.GETELEMENTBYID('TAXA_MKT').VALUE) / 100;
-        CONST EMB = PARSEFLOAT(DOCUMENT.GETELEMENTBYID('VALOR_EMBALAGEM').VALUE) || 0;
-        CONST FRETE = PARSEFLOAT(DOCUMENT.GETELEMENTBYID('VALOR_FRETE').VALUE) || 0;
-        CONST MARGEM = PARSEFLOAT(DOCUMENT.GETELEMENTBYID('TAXA_MARGEM').VALUE) / 100;
+        const IMP = parseFloat(document.getElementById('TAXA_IMP').value) / 100;
+        const MKT = parseFloat(document.getElementById('TAXA_MKT').value) / 100;
+        const EMB = parseFloat(document.getElementById('VAL_EMB').value) || 0;
+        const FRETE = parseFloat(document.getElementById('VAL_FRETE').value) || 0;
+        const MARGEM = parseFloat(document.getElementById('TAXA_MARGEM').value) / 100;
 
-        // CÁLCULO: (BASE + EMBALAGEM + FRETE) * IMPOSTOS * MARGEM
-        LET TOTAL = (SOMA_BASE + EMB + FRETE);
-        TOTAL = TOTAL + (TOTAL * IMP) + (TOTAL * MKT);
-        TOTAL = TOTAL + (TOTAL * MARGEM);
+        // CÁLCULO LOGÍSTICO CB2K
+        let SUBTOTAL = SOMA_BASE + EMB + FRETE;
+        let IMPOSTOS = SUBTOTAL * (IMP + MKT);
+        let PRECO_COM_LUCRO = (SUBTOTAL + IMPOSTOS) * (1 + MARGEM);
 
-        DOCUMENT.GETELEMENTBYID('DISPLAY_TOTAL').INNERTEXT = `R$ ${TOTAL.FIXED(2)}`;
+        document.getElementById('VALOR_FINAL').innerText = "R$ " + PRECO_COM_LUCRO.toFixed(2);
     }
 
-    FUNCTION REMOVER_ITEM(INDEX) {
-        ITENS_ORCAMENTO.SPLICE(INDEX, 1);
-        RENDERIZAR_TABELA();
-        RECALCULAR_TOTAL_GERAL();
+    function REMOVER(index) {
+        LISTA_PRODUTOS.splice(index, 1);
+        ATUALIZAR_TABELA();
+        CALCULAR_TUDO();
     }
-</SCRIPT>
+</script>
 
-       
+</body>
+</html>
