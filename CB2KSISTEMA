@@ -2,90 +2,82 @@
 <html lang="PT-BR">
 <head>
     <meta charset="UTF-8">
-    <title>SISTEMA DE ORÇAMENTO - CB2K 3D</title>
+    <title>SISTEMA INTEGRADO CB2K 3D</title>
     <style>
         :root {
             --fundo: #F0F2F5;
-            --azul-primario: #3B82F6;
-            --texto-cor: #1E293B;
+            --azul-cb2k: #3B82F6;
             --branco: #FFFFFF;
+            --cinza-texto: #64748B;
         }
 
-        * { box-sizing: border-box; text-transform: uppercase; }
+        * { box-sizing: border-box; text-transform: uppercase; font-family: 'Segoe UI', sans-serif; }
 
-        BODY { 
-            font-family: 'Segoe UI', sans-serif; 
-            background-color: var(--fundo); 
-            margin: 0; padding: 20px; 
-        }
+        BODY { background-color: var(--fundo); margin: 0; padding: 20px; }
 
-        .CONTAINER { max-width: 1100px; margin: 0 auto; }
+        .CONTAINER { max-width: 1000px; margin: 0 auto; }
 
         .CARD { 
             background: var(--branco); 
-            padding: 20px; 
-            border-radius: 15px; 
-            margin-bottom: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            padding: 25px; 
+            border-radius: 12px; 
+            margin-bottom: 20px; 
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
         }
 
+        .GRID-2 { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
         .GRID-3 { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 15px; }
         .GRID-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
 
         .GRUPO-INPUT { display: flex; flex-direction: column; margin-bottom: 10px; }
-        
-        LABEL { font-size: 11px; font-weight: bold; color: #64748B; margin-bottom: 5px; }
-        
-        INPUT { 
-            padding: 12px; 
-            border: 1px solid #E2E8F0; 
-            border-radius: 8px; 
-            background: #F8FAFC;
-        }
+        LABEL { font-size: 11px; font-weight: bold; color: var(--cinza-texto); margin-bottom: 5px; }
+        INPUT { padding: 12px; border: 1px solid #E2E8F0; border-radius: 6px; background: #F8FAFC; }
 
-        TABLE { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        TH { background: #F1F5F9; padding: 12px; font-size: 12px; text-align: left; color: #475569; }
+        TABLE { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        TH { background: #F8FAFC; padding: 12px; text-align: left; font-size: 12px; color: var(--cinza-texto); border-bottom: 2px solid #E2E8F0; }
         TD { padding: 12px; border-bottom: 1px solid #F1F5F9; font-size: 13px; }
 
-        .CARD-TOTAL {
+        .DISPLAY-TOTAL-GERAL {
             background: #EBF2FF;
-            border: 2px solid var(--azul-primario);
+            border: 2px solid var(--azul-cb2k);
             border-radius: 10px;
-            padding: 20px;
+            padding: 30px;
             text-align: center;
             margin-top: 20px;
         }
 
-        #VALOR_FINAL { font-size: 48px; color: var(--azul-primario); font-weight: bold; margin: 0; }
+        #VALOR_FINAL { font-size: 56px; color: var(--azul-cb2k); font-weight: bold; margin: 10px 0; }
 
-        .BTN-ADICIONAR {
-            background: var(--azul-primario);
+        .BTN-PRINCIPAL {
+            background: var(--azul-cb2k);
             color: white;
             border: none;
-            padding: 10px;
-            border-radius: 8px;
+            padding: 12px;
+            border-radius: 6px;
             cursor: pointer;
             font-weight: bold;
             margin-top: 18px;
+            transition: 0.2s;
         }
 
-        .BTN-REMOVER { color: #EF4444; border: none; background: none; cursor: pointer; font-size: 11px; }
+        .BTN-PRINCIPAL:HOVER { filter: brightness(0.9); }
+        .BTN-REMOVER { color: #EF4444; border: none; background: none; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="CONTAINER">
-    <h1 id="TITULO_ORCAMENTO">ORÇAMENTO</h1>
+    <h1 id="STATUS_ORCAMENTO">NOVO ORÇAMENTO</h1>
 
     <div class="CARD">
-        <div class="GRID-3" style="grid-template-columns: 2fr 1fr;">
+        <div class="GRID-2">
             <div class="GRUPO-INPUT">
-                <label>CLIENTE</label>
-                <input type="text" id="CLIENTE_NOME">
+                <label>NOME DO CLIENTE</label>
+                <input type="text" id="CLIENTE_NOME" oninput="ATUALIZAR_DADOS_CLIENTE()">
             </div>
             <div class="GRUPO-INPUT">
-                <label>WA (WHATSAPP)</label>
-                <input type="text" id="CLIENTE_WA">
+                <label>WHATSAPP (WA)</label>
+                <input type="text" id="CLIENTE_WA" oninput="ATUALIZAR_DADOS_CLIENTE()">
             </div>
         </div>
     </div>
@@ -93,14 +85,14 @@
     <div class="CARD">
         <div class="GRID-3">
             <div class="GRUPO-INPUT">
-                <label>PEÇA</label>
-                <input type="text" id="PRODUTO_NOME">
+                <label>NOME DA PEÇA</label>
+                <input type="text" id="PRODUTO_NOME" placeholder="EX: MASCOTE GARÇA">
             </div>
             <div class="GRUPO-INPUT">
                 <label>CUSTO BASE (R$)</label>
                 <input type="number" id="PRODUTO_CUSTO" value="0">
             </div>
-            <button class="BTN-ADICIONAR" onclick="ADICIONAR_AO_LISTADO()">ADICIONAR PEÇA</button>
+            <button class="BTN-PRINCIPAL" onclick="ADICIONAR_ITEM()">ADICIONAR ITEM</button>
         </div>
     </div>
 
@@ -110,7 +102,7 @@
                 <tr>
                     <th>PEÇA</th>
                     <th>MATERIAIS</th>
-                    <th>CUSTO BASE</th>
+                    <th>CUSTO UNITÁRIO</th>
                     <th>AÇÃO</th>
                 </tr>
             </thead>
@@ -121,74 +113,90 @@
 
     <div class="CARD">
         <div class="GRID-5">
-            <div class="GRUPO-INPUT"><label>IMP %</label><input type="number" id="TAXA_IMP" value="6" oninput="CALCULAR_TUDO()"></div>
-            <div class="GRUPO-INPUT"><label>MKT %</label><input type="number" id="TAXA_MKT" value="0" oninput="CALCULAR_TUDO()"></div>
-            <div class="GRUPO-INPUT"><label>EMBALAGEM</label><input type="number" id="VAL_EMB" value="5" oninput="CALCULAR_TUDO()"></div>
-            <div class="GRUPO-INPUT"><label>FRETE</label><input type="number" id="VAL_FRETE" value="0" oninput="CALCULAR_TUDO()"></div>
-            <div class="GRUPO-INPUT"><label>MARGEM %</label><input type="number" id="TAXA_MARGEM" value="100" oninput="CALCULAR_TUDO()"></div>
+            <div class="GRUPO-INPUT"><label>IMP %</label><input type="number" id="TAXA_IMP" value="6" oninput="CALCULAR_TOTAL_GERAL()"></div>
+            <div class="GRUPO-INPUT"><label>MKT %</label><input type="number" id="TAXA_MKT" value="0" oninput="CALCULAR_TOTAL_GERAL()"></div>
+            <div class="GRUPO-INPUT"><label>EMBALAGEM (R$)</label><input type="number" id="VAL_EMB" value="5" oninput="CALCULAR_TOTAL_GERAL()"></div>
+            <div class="GRUPO-INPUT"><label>FRETE (R$)</label><input type="number" id="VAL_FRETE" value="0" oninput="CALCULAR_TOTAL_GERAL()"></div>
+            <div class="GRUPO-INPUT"><label>MARGEM %</label><input type="number" id="TAXA_MARGEM" value="100" oninput="CALCULAR_TOTAL_GERAL()"></div>
         </div>
 
-        <div class="CARD-TOTAL">
-            <p style="margin: 0; font-size: 12px; color: #64748B;">VALOR TOTAL DO ORÇAMENTO</p>
+        <div class="DISPLAY-TOTAL-GERAL">
+            <label style="color: var(--azul-cb2k)">TOTAL DO ORÇAMENTO PARA <SPAN id="RESUMO_CLIENTE">---</SPAN></label>
             <h1 id="VALOR_FINAL">R$ 0,00</h1>
         </div>
     </div>
 </div>
 
 <script>
-    let LISTA_PRODUTOS = [];
+    // OBJETO ÚNICO QUE CONCENTRA TUDO
+    let ORCAMENTO = {
+        cliente: "",
+        wa: "",
+        itens: [],
+        taxas: { imp: 6, mkt: 0, emb: 5, frete: 0, margem: 100 }
+    };
 
-    function ADICIONAR_AO_LISTADO() {
-        const NOME = document.getElementById('PRODUTO_NOME').value;
-        const CUSTO = parseFloat(document.getElementById('PRODUTO_CUSTO').value) || 0;
+    function ATUALIZAR_DADOS_CLIENTE() {
+        ORCAMENTO.cliente = document.getElementById('CLIENTE_NOME').value;
+        ORCAMENTO.wa = document.getElementById('CLIENTE_WA').value;
+        document.getElementById('RESUMO_CLIENTE').innerText = ORCAMENTO.cliente || "---";
+        document.getElementById('STATUS_ORCAMENTO').innerText = ORCAMENTO.cliente ? "ORÇAMENTO: " + ORCAMENTO.cliente : "NOVO ORÇAMENTO";
+    }
 
-        if (NOME === "") return alert("DIGITE O NOME DA PEÇA");
+    function ADICIONAR_ITEM() {
+        const nome = document.getElementById('PRODUTO_NOME').value;
+        const custo = parseFloat(document.getElementById('PRODUTO_CUSTO').value) || 0;
 
-        LISTA_PRODUTOS.push({ nome: NOME, custo: CUSTO });
-        
+        if (!nome) return alert("DIGITE O NOME DA PEÇA!");
+
+        // ADICIONA À LISTA
+        ORCAMENTO.itens.push({ nome: nome, custo: custo });
+
+        // LIMPA CAMPOS DE ENTRADA
         document.getElementById('PRODUTO_NOME').value = "";
         document.getElementById('PRODUTO_CUSTO').value = "0";
 
-        ATUALIZAR_TABELA();
-        CALCULAR_TUDO();
+        RENDERIZAR_TABELA();
+        CALCULAR_TOTAL_GERAL();
     }
 
-    function ATUALIZAR_TABELA() {
-        const CORPO = document.getElementById('CORPO_TABELA');
-        CORPO.innerHTML = "";
+    function RENDERIZAR_TABELA() {
+        const corpo = document.getElementById('CORPO_TABELA');
+        corpo.innerHTML = "";
 
-        LISTA_PRODUTOS.forEach((item, index) => {
-            const LINHA = CORPO.insertRow();
-            LINHA.innerHTML = `
+        ORCAMENTO.itens.forEach((item, index) => {
+            const linha = corpo.insertRow();
+            linha.innerHTML = `
                 <td>${item.nome}</td>
-                <td>FILAMENTO 3D</td>
+                <td>IMPRESSÃO 3D</td>
                 <td>R$ ${item.custo.toFixed(2)}</td>
-                <td><button class="BTN-REMOVER" onclick="REMOVER(${index})">REMOVER</button></td>
+                <td><button class="BTN-REMOVER" onclick="REMOVER_ITEM(${index})">EXCLUIR</button></td>
             `;
         });
     }
 
-    function CALCULAR_TUDO() {
-        let SOMA_BASE = LISTA_PRODUTOS.reduce((acc, item) => acc + item.custo, 0);
+    function CALCULAR_TOTAL_GERAL() {
+        let somaBase = ORCAMENTO.itens.reduce((acc, i) => acc + i.custo, 0);
         
-        const IMP = parseFloat(document.getElementById('TAXA_IMP').value) / 100;
-        const MKT = parseFloat(document.getElementById('TAXA_MKT').value) / 100;
-        const EMB = parseFloat(document.getElementById('VAL_EMB').value) || 0;
-        const FRETE = parseFloat(document.getElementById('VAL_FRETE').value) || 0;
-        const MARGEM = parseFloat(document.getElementById('TAXA_MARGEM').value) / 100;
+        // CAPTURA TAXAS DA TELA
+        const imp = parseFloat(document.getElementById('TAXA_IMP').value) / 100;
+        const mkt = parseFloat(document.getElementById('TAXA_MKT').value) / 100;
+        const emb = parseFloat(document.getElementById('VAL_EMB').value) || 0;
+        const frete = parseFloat(document.getElementById('VAL_FRETE').value) || 0;
+        const margem = parseFloat(document.getElementById('TAXA_MARGEM').value) / 100;
 
-        // CÁLCULO LOGÍSTICO CB2K
-        let SUBTOTAL = SOMA_BASE + EMB + FRETE;
-        let IMPOSTOS = SUBTOTAL * (IMP + MKT);
-        let PRECO_COM_LUCRO = (SUBTOTAL + IMPOSTOS) * (1 + MARGEM);
+        // LÓGICA DE CÁLCULO INTEGRADA
+        let totalCusto = somaBase + emb + frete;
+        let totalComImpostos = totalCusto * (1 + imp + mkt);
+        let precoFinal = totalComImpostos * (1 + margem);
 
-        document.getElementById('VALOR_FINAL').innerText = "R$ " + PRECO_COM_LUCRO.toFixed(2);
+        document.getElementById('VALOR_FINAL').innerText = "R$ " + precoFinal.toFixed(2);
     }
 
-    function REMOVER(index) {
-        LISTA_PRODUTOS.splice(index, 1);
-        ATUALIZAR_TABELA();
-        CALCULAR_TUDO();
+    function REMOVER_ITEM(index) {
+        ORCAMENTO.itens.splice(index, 1);
+        RENDERIZAR_TABELA();
+        CALCULAR_TOTAL_GERAL();
     }
 </script>
 
